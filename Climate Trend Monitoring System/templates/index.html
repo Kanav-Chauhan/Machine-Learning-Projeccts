@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Temperature Prediction</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-950 text-slate-200 min-h-screen flex justify-center items-center">
+
+<div class="mt-8 p-5 rounded-lg border border-sky-500/30 bg-slate-900/60">
+  <h2 class="text-xl font-semibold text-sky-400 mb-3">
+    Model Evaluation & Study Details
+  </h2>
+
+  <p class="text-sm text-slate-300 mb-4 leading-relaxed">
+    This temperature prediction system is built using a supervised machine learning
+    approach. The model learns the relationship between multiple weather and time-based
+    features (X) and the corresponding air temperature (y).
+  </p>
+
+  <h3 class="text-lg font-semibold text-sky-300 mb-2">
+    Model Used
+  </h3>
+
+  <p class="text-sm text-slate-300 mb-4 leading-relaxed">
+    We used a <span class="text-sky-400 font-medium">Random Forest Regressor</span>,
+    an ensemble learning algorithm that combines multiple decision trees to improve
+    prediction accuracy and reduce overfitting. Random Forest works well with
+    non-linear relationships and mixed feature types, making it suitable for
+    weather-based prediction tasks.
+  </p>
+
+  <h3 class="text-lg font-semibold text-sky-300 mb-2">
+    Evaluation Metrics
+  </h3>
+
+  <ul class="text-sm text-slate-300 mb-4 space-y-1">
+    <li>
+      <span class="text-sky-400 font-medium">MAE (Mean Absolute Error):</span>
+      1.35&nbsp;°C
+    </li>
+    <li>
+      <span class="text-sky-400 font-medium">RMSE (Root Mean Squared Error):</span>
+      1.84&nbsp;°C
+    </li>
+  </ul>
+
+  <p class="text-sm text-slate-300 mb-4 leading-relaxed">
+    MAE represents the average absolute difference between the predicted and actual
+    temperatures, while RMSE penalizes larger errors more heavily. Lower values of
+    both metrics indicate better model performance.
+  </p>
+
+  <h3 class="text-lg font-semibold text-sky-300 mb-2">
+    Learning Objectives
+  </h3>
+
+  <ul class="text-sm text-slate-300 list-disc list-inside space-y-1">
+    <li>Understanding feature selection for regression problems</li>
+    <li>Applying ensemble models like Random Forest</li>
+    <li>Evaluating models using MAE and RMSE</li>
+    <li>Building an end-to-end ML application (UI + API + Model)</li>
+  </ul>
+</div>
+
+
+<div class="bg-slate-900/70 backdrop-blur-xl p-8 rounded-xl w-full max-w-3xl border border-sky-500/30">
+
+  <h1 class="text-2xl font-bold text-sky-400 mb-2">
+    Temperature Prediction (°C)
+  </h1>
+
+  <p class="text-sm text-slate-400 mb-6">
+    Provide all weather and time parameters (X).
+    The model predicts air temperature (y).
+  </p>
+
+  <!-- Categorical Inputs -->
+  <div class="grid grid-cols-2 gap-4 mb-4">
+    <div>
+      <label class="label">Weather Summary</label>
+      <select id="summary" class="input">
+        <option selected>Clear</option>
+        <option>Partly Cloudy</option>
+        <option>Overcast</option>
+        <option>Rain</option>
+        <option>Snow</option>
+      </select>
+    </div>
+
+    <div>
+      <label class="label">Precipitation Type</label>
+      <select id="precip" class="input">
+        <option selected>rain</option>
+        <option>snow</option>
+        <option>none</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Numerical Inputs -->
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label class="label">Humidity</label>
+      <input id="humidity" type="number" step="0.01" value="0.65" class="input">
+    </div>
+
+    <div>
+      <label class="label">Wind Speed (km/h)</label>
+      <input id="wind_speed" type="number" value="8" class="input">
+    </div>
+
+    <div>
+      <label class="label">Wind Bearing (°)</label>
+      <input id="wind_bearing" type="number" value="180" class="input">
+    </div>
+
+    <div>
+      <label class="label">Visibility (km)</label>
+      <input id="visibility" type="number" value="10" class="input">
+    </div>
+
+    <div>
+      <label class="label">Year</label>
+      <input id="year" type="number" class="input">
+    </div>
+
+    <div>
+      <label class="label">Month</label>
+      <input id="month" type="number" class="input">
+    </div>
+
+    <div>
+      <label class="label">Day</label>
+      <input id="day" type="number" class="input">
+    </div>
+
+    <div>
+      <label class="label">Hour</label>
+      <input id="hour" type="number" class="input">
+    </div>
+  </div>
+<button onclick="randomize()"
+  class="mt-4 w-full py-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded">
+  Random Values
+</button>
+
+  <button onclick="predict()"
+    class="mt-6 w-full py-3 bg-sky-500 hover:bg-sky-400 text-black font-semibold rounded">
+    Predict Temperature
+  </button>
+
+  <div id="result" class="mt-4 text-lg font-semibold text-sky-400"></div>
+</div>
+
+<script>
+window.onload = () => {
+  const now = new Date();
+  document.getElementById("year").value = now.getFullYear();
+  document.getElementById("month").value = now.getMonth() + 1;
+  document.getElementById("day").value = now.getDate();
+  document.getElementById("hour").value = now.getHours();
+};
+
+async function predict() {
+  const payload = {
+    Summary: document.getElementById("summary").value,
+    Precip_Type: document.getElementById("precip").value,
+    Humidity: Number(document.getElementById("humidity").value),
+    Wind_Speed_km_h: Number(document.getElementById("wind_speed").value),
+    Wind_Bearing_degrees: Number(document.getElementById("wind_bearing").value),
+    Visibility_km: Number(document.getElementById("visibility").value),
+    year: Number(document.getElementById("year").value),
+    month: Number(document.getElementById("month").value),
+    day: Number(document.getElementById("day").value),
+    hour: Number(document.getElementById("hour").value)
+  };
+
+  const res = await fetch("/predict", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await res.json();
+  document.getElementById("result").innerText =
+    `Predicted Temperature: ${data.predicted_temperature_c} °C`;
+}
+</script>
+<script>
+function randomBetween(min, max, decimals = 0) {
+  const val = Math.random() * (max - min) + min;
+  return Number(val.toFixed(decimals));
+}
+
+function randomize() {
+  // Random categorical values
+  const summaries = ["Clear", "Partly Cloudy", "Overcast", "Rain", "Snow"];
+  const precipTypes = ["rain", "snow", "none"];
+
+  document.getElementById("summary").value =
+    summaries[Math.floor(Math.random() * summaries.length)];
+
+  document.getElementById("precip").value =
+    precipTypes[Math.floor(Math.random() * precipTypes.length)];
+
+  // Random numerical values (realistic ranges)
+  document.getElementById("humidity").value = randomBetween(0.3, 0.95, 2);
+  document.getElementById("wind_speed").value = randomBetween(0, 40);
+  document.getElementById("wind_bearing").value = randomBetween(0, 360);
+  document.getElementById("visibility").value = randomBetween(1, 15);
+
+  // Random date/time (reasonable)
+  document.getElementById("month").value = randomBetween(1, 12);
+  document.getElementById("day").value = randomBetween(1, 28);
+  document.getElementById("hour").value = randomBetween(0, 23);
+
+  // Keep year current
+  document.getElementById("year").value = new Date().getFullYear();
+}
+</script>
+
+
+<style>
+.input {
+  width: 100%;
+  background: transparent;
+  border: 1px solid rgba(56,189,248,.4);
+  padding: .5rem;
+  border-radius: .375rem;
+  color: #e5e7eb;
+}
+
+.input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(56,189,248,.6);
+}
+
+.label {
+  display: block;
+  font-size: 0.75rem;
+  color: #7dd3fc;
+  margin-bottom: 0.25rem;
+}
+</style>
+
+</body>
+</html>
